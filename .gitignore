@@ -1,0 +1,30 @@
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Flutter and Dart generated files
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# IDE and operating system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

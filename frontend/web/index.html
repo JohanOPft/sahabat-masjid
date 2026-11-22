@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Sahabat Masjid - Aplikasi Pengelolaan Donasi, Pelaporan, dan Jadwal Kegiatan Masjid Al-Ikhlas">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sahabat Masjid - Masjid Al-Ikhlas (MySQL Live)</title>
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0F766E;
+      --primary-hover: #115E59;
+      --secondary: #059669;
+      --accent: #D97706;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --danger: #DC2626;
+      --success: #16A34A;
+      --warning: #EA580C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* HEADER & NAVBAR */
+    header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 14px 24px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15); position: sticky; top: 0; z-index: 100; }
+    .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .logo-area { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .logo-icon { width: 44px; height: 44px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .brand-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 13px; opacity: 0.85; }
+    .db-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px; background: #DCFCE7; color: #15803D; margin-left: 8px; vertical-align: middle; }
+    
+    .nav-links { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .nav-btn { background: rgba(255,255,255,0.12); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .nav-btn:hover, .nav-btn.active { background: white; color: var(--primary); }
+    .nav-btn.register-btn { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+    .nav-btn.register-btn:hover { background: #FDE68A; }
+    .nav-btn.user-badge { background: #E0E7FF; color: #3730A3; font-weight: 700; }
+
+    /* LAYOUT */
+    main { max-width: 1200px; margin: 24px auto; padding: 0 20px; width: 100%; flex: 1; }
+    .hero-card { background: white; border-radius: 16px; padding: 28px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; position: relative; overflow: hidden; }
+    .hero-card::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 8px; background: linear-gradient(to bottom, var(--primary), var(--secondary)); }
+    .hero-title { font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+    .hero-desc { font-size: 15px; color: var(--text-muted); line-height: 1.6; max-width: 800px; }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; border-radius: 14px; padding: 18px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 16px; }
+    .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .stat-title { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 4px; }
+
+    .card { background: white; border-radius: 14px; border: 1px solid var(--border); padding: 22px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .card-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: var(--primary-hover); }
+    .btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: 6px; }
+    .btn-secondary { background: #E2E8F0; color: #334155; }
+    .btn-secondary:hover { background: #CBD5E1; }
+    .btn-success { background: var(--secondary); }
+    .btn-success:hover { background: #047857; }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #B91C1C; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: #F1F5F9; }
+
+    /* TABLES */
+    .table-container { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; padding: 12px 14px; font-size: 13px; color: var(--text-muted); text-transform: uppercase; background: #F8FAFC; border-bottom: 1px solid var(--border); }
+    td { padding: 13px 14px; font-size: 14px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #F8FAFC; }
+
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; }
+    .badge-success { background: #DCFCE7; color: #15803D; }
+    .badge-warning { background: #FEF3C7; color: #B45309; }
+    .badge-danger { background: #FEE2E2; color: #B91C1C; }
+    .badge-info { background: #E0F2FE; color: #0369A1; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: white; border-radius: 16px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; transition: border-color 0.2s; }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,118,110,0.15); }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+    
+    .role-selector { display: flex; gap: 12px; margin-bottom: 16px; }
+    .role-box { flex: 1; border: 2px solid var(--border); padding: 12px; border-radius: 10px; cursor: pointer; text-align: center; }
+    .role-box.active { border-color: var(--primary); background: rgba(15,118,110,0.06); }
+    .role-title { font-weight: 700; font-size: 14px; }
+    .role-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <div class="logo-area" onclick="switchView('home')">
+        <div class="logo-icon">🕌</div>
+        <div>
+          <div class="brand-title">Sahabat Masjid <span class="db-badge" id="db-status-badge">MySQL Live</span></div>
+          <div class="brand-sub">Masjid Al-Ikhlas Semarang</div>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <button class="nav-btn active" onclick="switchView('home')">Beranda</button>
+        <button class="nav-btn" onclick="switchView('activities')">Kegiatan & PJ</button>
+        <button class="nav-btn" onclick="switchView('how-to-donate')">Cara Berdonasi</button>
+        <button class="nav-btn" onclick="switchView('confirm-donation')">Konfirmasi Donasi</button>
+        <button class="nav-btn" onclick="switchView('reports')">Laporan Transparansi</button>
+        
+        <!-- Action Auth -->
+        <button id="nav-register-btn" class="nav-btn register-btn" onclick="openRegisterModal()">Daftar Akun</button>
+        <button id="nav-login-btn" class="nav-btn" onclick="openLoginModal()">Masuk Pengurus</button>
+        <button id="nav-dash-btn" class="nav-btn user-badge" style="display:none;" onclick="switchView('dashboard')">Dashboard</button>
+        <button id="nav-logout-btn" class="nav-btn btn-danger btn-sm" style="display:none;" onclick="handleLogout()">Keluar</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main>
+    <!-- VIEW 1: BERANDA PUBLIK -->
+    <section id="view-home" class="view-section active">
+      <div class="hero-card">
+        <h1 class="hero-title" id="home-mosque-name">Masjid Al-Ikhlas Semarang</h1>
+        <p class="hero-desc" id="home-mosque-desc">Aplikasi Pengelolaan Donasi, Pelaporan Transparan, dan Jadwal Kegiatan Masjid Al-Ikhlas. Terhubung langsung ke Database MySQL secara real-time.</p>
+        <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn btn-success" onclick="switchView('how-to-donate')">💳 Rekening & Cara Berdonasi</button>
+          <button class="btn" onclick="switchView('confirm-donation')">📝 Kirim Bukti Transfer</button>
+          <button class="btn btn-secondary" onclick="switchView('reports')">📊 Laporan Transparansi Umat</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>📅 Jadwal Kegiatan Terdekat & Penanggung Jawab (PJ)</span>
+          <button class="btn btn-secondary btn-sm" onclick="switchView('activities')">Lihat Semua Kegiatan →</button>
+        </div>
+        <div class="table-container">
+          <div id="home-activities-list">Memuat data dari MySQL...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: KEGIATAN & JADWAL PJ -->
+    <section id="view-activities" class="view-section">
+      <div class="card">
+        <div class="card-title">
+          <span>Daftar Kegiatan Masjid Al-Ikhlas</span>
+          <div id="admin-act-actions" style="display:none;">
+            <button class="btn btn-success btn-sm" onclick="openModal('modal-add-activity')">+ Tambah Kegiatan Baru</button>
+          </div>
+        </div>
+        <div class="table-container" id="activities-table-wrapper">Memuat...</div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: CARA BERDONASI -->
+    <section id="view-how-to-donate" class="view-section">
+      <div class="card" style="background: linear-gradient(135deg, #0F766E, #059669); color: white;">
+        <h2 style="font-size: 22px; margin-bottom: 8px;">Rekening Resmi Masjid Al-Ikhlas</h2>
+        <p style="opacity: 0.9; margin-bottom: 20px;">Salurkan donasi infaq, shadaqah, dan operasional kegiatan masjid ke rekening resmi:</p>
+        <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 12px; max-width: 480px;">
+          <div style="font-size: 14px; opacity: 0.9;" id="donate-bank-name">Bank Syariah Indonesia (BSI)</div>
+          <div style="font-size: 30px; font-weight: 800; color: #FDE68A; margin: 4px 0;" id="donate-bank-acc">7123456789</div>
+          <div style="font-size: 15px;" id="donate-bank-holder">a.n. Masjid Al-Ikhlas Semarang</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Petunjuk Transfer & Donatur Jarak Jauh (Tembalang dll)</h3>
+        <p style="line-height: 1.8; color: var(--text-muted);" id="donate-instructions">
+          1. Salurkan donasi melalui transfer m-banking / ATM ke rekening BSI di atas.<br>
+          2. Simpan struk bukti transfer.<br>
+          3. Buka menu <b>Konfirmasi Donasi</b> dan kirimkan data transfer Anda.<br>
+          4. Anda akan langsung menerima Kode Referensi unik untuk memantau status persetujuan takmir.
+        </p>
+        <button class="btn btn-success" style="margin-top: 18px;" onclick="switchView('confirm-donation')">Lanjut ke Form Konfirmasi Donasi →</button>
+      </div>
+    </section>
+
+    <!-- VIEW 4: KONFIRMASI DONASI -->
+    <section id="view-confirm-donation" class="view-section">
+      <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <h2 class="card-title">Formulir Konfirmasi Transfer Donasi</h2>
+        <form id="form-confirm-donation" onsubmit="handleConfirmSubmit(event)">
+          <div class="form-group">
+            <label>Nama Donatur (Opsional / Anonim)</label>
+            <input type="text" id="conf-name" class="form-control" placeholder="Biarkan kosong jika Hamba Allah">
+          </div>
+          <div class="form-group">
+            <label>Nomor WhatsApp / Kontak (Opsional)</label>
+            <input type="text" id="conf-contact" class="form-control" placeholder="08123456789">
+          </div>
+          <div class="form-group">
+            <label>Nominal Donasi Transfer (Rp) *</label>
+            <input type="number" id="conf-amount" class="form-control" required placeholder="Contoh: 250000">
+          </div>
+          <div class="form-group">
+            <label>Tanggal Transfer *</label>
+            <input type="date" id="conf-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Tujuan Kegiatan (Opsional)</label>
+            <select id="conf-activity" class="form-control"></select>
+          </div>
+          <button type="submit" class="btn btn-success" style="width: 100%; padding: 14px; justify-content: center; font-size: 16px;">Kirim Konfirmasi ke Pengurus</button>
+        </form>
+
+        <div id="conf-result-box" style="display:none; margin-top: 20px; padding: 20px; border-radius: 12px; background: #DCFCE7; border: 1px solid #86EFAC;">
+          <h3 style="color: #15803D; margin-bottom: 6px;">🎉 Konfirmasi Donasi Tersimpan di MySQL!</h3>
+          <p style="font-size: 14px; margin-bottom: 12px;">Simpan kode referensi Anda untuk memantau status verifikasi pengurus:</p>
+          <div id="conf-ref-code" style="font-size: 24px; font-weight: 800; color: #0F766E; letter-spacing: 1.5px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: LAPORAN PUBLIK -->
+    <section id="view-reports" class="view-section">
+      <div class="card">
+        <div class="card-title">
+          <span>Laporan Keuangan & Kegiatan Terpublikasi</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Laporan di bawah ini telah disetujui langsung oleh Takmir Masjid Al-Ikhlas untuk transparansi penggunaan dana donasi umat.</p>
+        <div id="reports-list-wrapper">Memuat laporan dari MySQL...</div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: DASHBOARD PENGURUS (ADMIN & TAKMIR) -->
+    <section id="view-dashboard" class="view-section">
+      <div class="card" style="background: #0F766E; color: white;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2 id="dash-greeting" style="font-size: 22px;">Assalamu'alaikum, Pengurus</h2>
+            <p id="dash-role" style="opacity: 0.85; margin-top: 4px;">Peran: Pengurus Masjid</p>
+          </div>
+          <div>
+            <button class="btn btn-outline" style="color:white; border-color:white;" onclick="loadAllData()">🔄 Sinkronisasi Data MySQL</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- METRIK STATISTIK LIVE MYSQL -->
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #DCFCE7; color: #16A34A;">💰</div>
+          <div>
+            <div class="stat-title">Saldo Kas Masjid</div>
+            <div class="stat-val" id="stat-kas-balance">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #E0F2FE; color: #0284C7;">📥</div>
+          <div>
+            <div class="stat-title">Total Donasi Uang</div>
+            <div class="stat-val" id="stat-total-donasi">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #FEE2E2; color: #DC2626;">📤</div>
+          <div>
+            <div class="stat-title">Total Pengeluaran</div>
+            <div class="stat-val" id="stat-total-pengeluaran">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #FEF3C7; color: #D97706;">🍱</div>
+          <div>
+            <div class="stat-title">Donasi Makanan</div>
+            <div class="stat-val" id="stat-food-portions">0 Porsi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPERASI CEPAT PENGURUS -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚡ Tindakan & Manajemen Data (MySQL Live)</span>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn btn-success" onclick="openModal('modal-add-donation')">📝 Catat Donasi Baru</button>
+          <button class="btn btn-danger" onclick="openModal('modal-add-expense')">💸 Catat Pengeluaran</button>
+          <button class="btn" onclick="openModal('modal-add-activity')">📅 Tambah Kegiatan & PJ</button>
+          <button class="btn btn-secondary" onclick="openModal('modal-add-cash')">🪙 Tambah Transaksi Kas</button>
+          <button class="btn btn-warning" style="background:#D97706;" onclick="openConfirmationsModal()">🔍 Tinjau Bukti Donatur Pending</button>
+        </div>
+      </div>
+
+      <!-- TABEL DAFTAR DONASI TERCATAT -->
+      <div class="card">
+        <div class="card-title">
+          <span>📋 10 Donasi Terakhir Tercatat di Database</span>
+          <button class="btn btn-success btn-sm" onclick="openModal('modal-add-donation')">+ Catat Donasi</button>
+        </div>
+        <div class="table-container" id="admin-donations-table">Memuat data donasi...</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: REGISTRASI PENGURUS (ADMIN & TAKMIR)                    -->
+  <!-- ============================================================== -->
+  <div id="modal-register" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 6px; font-size: 20px;">Daftar Akun Pengurus Baru</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">Pilih peran Anda dan lengkapi data untuk terdaftar di MySQL.</p>
+      
+      <div class="role-selector">
+        <div class="role-box active" id="role-box-admin" onclick="selectRegisterRole('admin')">
+          <div class="role-title">Admin (Marbot)</div>
+          <div class="role-desc">Pencatatan donasi & kegiatan</div>
+        </div>
+        <div class="role-box" id="role-box-takmir" onclick="selectRegisterRole('takmir')">
+          <div class="role-title">Takmir</div>
+          <div class="role-desc">Pengawas kas & laporan</div>
+        </div>
+      </div>
+
+      <form onsubmit="handleRegister(event)">
+        <input type="hidden" id="reg-role" value="admin">
+        <div class="form-group">
+          <label>Nama Lengkap *</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="Contoh: Mas Rizki (Marbot)" required>
+        </div>
+        <div class="form-group">
+          <label>Alamat Email *</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="nama@alikhlas.id" required>
+        </div>
+        <div class="form-group">
+          <label>Kata Sandi (Minimal 6 karakter) *</label>
+          <input type="password" id="reg-password" class="form-control" required minlength="6">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-register')">Batal</button>
+          <button type="submit" class="btn btn-success" id="btn-submit-reg">Daftar Akun Sekarang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: LOGIN                                                   -->
+  <!-- ============================================================== -->
+  <div id="modal-login" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 16px; font-size: 20px;">Masuk Pengurus Masjid</h3>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email Pengurus</label>
+          <input type="email" id="login-email" class="form-control" value="takmir@alikhlas.id" required>
+        </div>
+        <div class="form-group">
+          <label>Kata Sandi</label>
+          <input type="password" id="login-pass" class="form-control" value="takmir123" required>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+          Akun Demo: <b>takmir@alikhlas.id</b> (takmir123) | <b>marbot@alikhlas.id</b> (marbot123)
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('modal-login'); openRegisterModal();">Belum ada akun? Daftar</button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-login')">Batal</button>
+            <button type="submit" class="btn btn-success">Masuk</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: TAMBAH KEGIATAN & PJ                                    -->
+  <!-- ============================================================== -->
+  <div id="modal-add-activity" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 16px; font-size: 20px;">Tambah Kegiatan Baru (FR-06)</h3>
+      <form onsubmit="handleAddActivity(event)">
+        <div class="form-group">
+          <label>Nama Kegiatan *</label>
+          <input type="text" id="act-title" class="form-control" required placeholder="Contoh: Pengajian Rutin Malam Ahad">
+        </div>
+        <div class="form-group">
+          <label>Jenis Kegiatan *</label>
+          <select id="act-type" class="form-control">
+            <option value="Jumat Berkah">Jumat Berkah</option>
+            <option value="Pengajian">Pengajian</option>
+            <option value="Kegiatan Bulan Puasa">Kegiatan Bulan Puasa</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label>Tanggal *</label>
+            <input type="date" id="act-date" class="form-control" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Waktu *</label>
+            <input type="text" id="act-time" class="form-control" value="19:30 - 21:00 WIB" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nama Penanggung Jawab (PJ)</label>
+          <input type="text" id="act-pj" class="form-control" placeholder="Kosongkan jika belum ditentukan (FR-10)">
+        </div>
+        <div class="form-group">
+          <label>Keterangan Tambahan</label>
+          <textarea id="act-notes" class="form-control" rows="2"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-activity')">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan ke MySQL</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: CATAT DONASI (4 JENIS)                                  -->
+  <!-- ============================================================== -->
+  <div id="modal-add-donation" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 16px; font-size: 20px;">Catat Donasi Baru (FR-11, FR-12)</h3>
+      <form onsubmit="handleAddDonation(event)">
+        <div class="form-group">
+          <label>Jenis Donasi *</label>
+          <select id="don-type" class="form-control" onchange="toggleDonationFields()">
+            <option value="uang">Uang (Cash / Transfer)</option>
+            <option value="makanan">Makanan (Porsi)</option>
+            <option value="barang">Barang (Perkiraan Nilai Rp)</option>
+            <option value="jasa">Jasa (Perkiraan Nilai Rp)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nama Donatur (Opsional / Anonim)</label>
+          <input type="text" id="don-name" class="form-control" placeholder="Hamba Allah">
+        </div>
+        <div class="form-group">
+          <label>Terkait Kegiatan (Opsional)</label>
+          <select id="don-activity" class="form-control"></select>
+        </div>
+        
+        <!-- Field Uang -->
+        <div id="don-field-uang">
+          <div class="form-group">
+            <label>Nominal Uang (Rp) *</label>
+            <input type="number" id="don-amount" class="form-control" placeholder="Contoh: 500000">
+          </div>
+          <div class="form-group">
+            <label>Metode Pembayaran *</label>
+            <select id="don-method" class="form-control">
+              <option value="tunai">Tunai (Cash)</option>
+              <option value="transfer">Transfer Bank / QRIS</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Field Makanan -->
+        <div id="don-field-makanan" style="display:none;">
+          <div class="form-group">
+            <label>Jumlah Porsi Makanan *</label>
+            <input type="number" id="don-portions" class="form-control" placeholder="Contoh: 50">
+          </div>
+          <div class="form-group">
+            <label>Deskripsi Makanan *</label>
+            <input type="text" id="don-desc-makanan" class="form-control" placeholder="Contoh: Nasi kotak ayam bakar">
+          </div>
+        </div>
+
+        <!-- Field Barang & Jasa -->
+        <div id="don-field-barang" style="display:none;">
+          <div class="form-group">
+            <label>Deskripsi Barang / Jasa *</label>
+            <input type="text" id="don-desc-barang" class="form-control" placeholder="Contoh: Sajadah gulung 2 pcs">
+          </div>
+          <div class="form-group">
+            <label>Taksiran Nilai Rupiah (Rp) *</label>
+            <input type="number" id="don-val-barang" class="form-control" placeholder="Contoh: 1200000">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-donation')">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan Donasi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: CATAT PENGELUARAN                                       -->
+  <!-- ============================================================== -->
+  <div id="modal-add-expense" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 16px; font-size: 20px;">Catat Pengeluaran Kegiatan (FR-18)</h3>
+      <form onsubmit="handleAddExpense(event)">
+        <div class="form-group">
+          <label>Terkait Kegiatan *</label>
+          <select id="exp-activity" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label>Kategori Biaya *</label>
+          <select id="exp-category" class="form-control">
+            <option value="Konsumsi">Konsumsi</option>
+            <option value="Perlengkapan">Perlengkapan</option>
+            <option value="Transportasi">Transportasi</option>
+            <option value="Kebersihan">Kebersihan</option>
+            <option value="Honor Penceramah">Honor Penceramah</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nominal Biaya (Rp) *</label>
+          <input type="number" id="exp-amount" class="form-control" required placeholder="Contoh: 150000">
+        </div>
+        <div class="form-group">
+          <label>Keterangan Pengeluaran *</label>
+          <input type="text" id="exp-desc" class="form-control" required placeholder="Contoh: Pembelian air mineral dan snack">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-expense')">Batal</button>
+          <button type="submit" class="btn btn-danger">Simpan Pengeluaran</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: TRANSAKSI KAS                                           -->
+  <!-- ============================================================== -->
+  <div id="modal-add-cash" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin-bottom: 16px; font-size: 20px;">Catat Transaksi Kas Masjid (FR-23)</h3>
+      <form onsubmit="handleAddCash(event)">
+        <div class="form-group">
+          <label>Arah Kas *</label>
+          <select id="cash-direction" class="form-control">
+            <option value="masuk">Kas Masuk (Penambahan Saldo)</option>
+            <option value="keluar">Kas Keluar (Tambal Defisit / Pengeluaran Lain)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nominal (Rp) *</label>
+          <input type="number" id="cash-amount" class="form-control" required placeholder="Contoh: 1000000">
+        </div>
+        <div class="form-group">
+          <label>Keterangan Sumber / Keperluan *</label>
+          <input type="text" id="cash-note" class="form-control" required placeholder="Contoh: Kotak infaq jumat keliling">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-cash')">Batal</button>
+          <button type="submit" class="btn btn-success">Simpan Kas</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: VERIFIKASI KONFIRMASI DONATUR                           -->
+  <!-- ============================================================== -->
+  <div id="modal-confirmations" class="modal-overlay">
+    <div class="modal-card" style="max-width: 650px;">
+      <h3 style="margin-bottom: 16px; font-size: 20px;">Daftar Konfirmasi Donasi Pending (FR-28, FR-29)</h3>
+      <div id="confirmations-list-container">Memuat...</div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirmations')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- JAVASCRIPT: LOGIKA PENUH DENGAN MYSQL BACKEND                  -->
+  <!-- ============================================================== -->
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000/api';
+    let authToken = localStorage.getItem('sm_token') || null;
+    let currentUser = JSON.parse(localStorage.getItem('sm_user') || 'null');
+
+    function formatRupiah(num) {
+      return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.add('active');
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function openRegisterModal() {
+      selectRegisterRole('admin');
+      openModal('modal-register');
+    }
+
+    function selectRegisterRole(role) {
+      document.getElementById('reg-role').value = role;
+      document.getElementById('role-box-admin').classList.toggle('active', role === 'admin');
+      document.getElementById('role-box-takmir').classList.toggle('active', role === 'takmir');
+      document.getElementById('btn-submit-reg').innerText = 'Daftar Sebagai ' + role.toUpperCase();
+    }
+
+    function openLoginModal() {
+      if (authToken && currentUser) {
+        switchView('dashboard');
+      } else {
+        openModal('modal-login');
+      }
+    }
+
+    function updateAuthUI() {
+      const isLogged = authToken && currentUser;
+      document.getElementById('nav-register-btn').style.display = isLogged ? 'none' : 'inline-block';
+      document.getElementById('nav-login-btn').style.display = isLogged ? 'none' : 'inline-block';
+      document.getElementById('nav-dash-btn').style.display = isLogged ? 'inline-block' : 'none';
+      document.getElementById('nav-logout-btn').style.display = isLogged ? 'inline-block' : 'none';
+      document.getElementById('admin-act-actions').style.display = isLogged ? 'block' : 'none';
+
+      if (isLogged) {
+        document.getElementById('nav-dash-btn').innerText = 'Dashboard (' + currentUser.name.split(' ')[0] + ')';
+        document.getElementById('dash-greeting').innerText = 'Assalamu\'alaikum, ' + currentUser.name;
+        document.getElementById('dash-role').innerText = 'Peran: ' + currentUser.role.toUpperCase() + ' (Tersimpan di MySQL)';
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('sm_token');
+      localStorage.removeItem('sm_user');
+      authToken = null;
+      currentUser = null;
+      updateAuthUI();
+      switchView('home');
+    }
+
+    // ==============================================================
+    // 1. REGISTRASI KE MYSQL
+    // ==============================================================
+    async function handleRegister(e) {
+      e.preventDefault();
+      const role = document.getElementById('reg-role').value;
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        const res = await fetch(API_BASE + '/auth/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, email, password, role})
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Pendaftaran Berhasil!\nAkun Anda sebagai ' + role.toUpperCase() + ' telah tersimpan di database MySQL.');
+          authToken = data.data.token;
+          currentUser = data.data.user;
+          localStorage.setItem('sm_token', authToken);
+          localStorage.setItem('sm_user', JSON.stringify(currentUser));
+          closeModal('modal-register');
+          updateAuthUI();
+          switchView('dashboard');
+          loadAllData();
+        } else {
+          alert('Gagal daftar: ' + data.message);
+        }
+      } catch (err) {
+        alert('Gagal menghubungi backend: ' + err.message);
+      }
+    }
+
+    // ==============================================================
+    // 2. LOGIN DARI MYSQL
+    // ==============================================================
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-pass').value;
+
+      try {
+        const res = await fetch(API_BASE + '/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password})
+        });
+        const data = await res.json();
+        if (data.success) {
+          authToken = data.data.token;
+          currentUser = data.data.user;
+          localStorage.setItem('sm_token', authToken);
+          localStorage.setItem('sm_user', JSON.stringify(currentUser));
+          closeModal('modal-login');
+          updateAuthUI();
+          switchView('dashboard');
+          loadAllData();
+        } else {
+          alert('Gagal masuk: ' + data.message);
+        }
+      } catch (err) {
+        alert('Gagal menghubungi backend: ' + err.message);
+      }
+    }
+
+    // ==============================================================
+    // 3. LOAD DATA REAL-TIME DARI MYSQL
+    // ==============================================================
+    async function loadAllData() {
+      try {
+        // Cek health
+        const hRes = await fetch(API_BASE + '/health');
+        const hData = await hRes.json();
+        if (hData.success) {
+          document.getElementById('db-status-badge').innerText = hData.data.database + ' Live';
+        }
+
+        // Info masjid
+        const infoRes = await fetch(API_BASE + '/mosque');
+        const info = (await infoRes.json()).data;
+        document.getElementById('home-mosque-name').innerText = info.name;
+        document.getElementById('home-mosque-desc').innerText = info.description;
+        document.getElementById('donate-bank-name').innerText = info.bank_name;
+        document.getElementById('donate-bank-acc').innerText = info.bank_account;
+        document.getElementById('donate-bank-holder').innerText = 'a.n. ' + info.bank_holder;
+        document.getElementById('donate-instructions').innerText = info.donation_info;
+
+        // Kegiatan
+        const actRes = await fetch(API_BASE + '/activities');
+        const acts = (await actRes.json()).data;
+        
+        let actHtml = '<table><thead><tr><th>Kegiatan</th><th>Tanggal & Waktu</th><th>PJ</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+        const selectConf = document.getElementById('conf-activity');
+        const selectDon = document.getElementById('don-activity');
+        const selectExp = document.getElementById('exp-activity');
+
+        selectConf.innerHTML = '<option value="">Umum / Kas Masjid</option>';
+        selectDon.innerHTML = '<option value="">Umum / Tanpa Kegiatan</option>';
+        selectExp.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
+
+        acts.forEach(a => {
+          const isDeficit = a.is_deficit;
+          actHtml += `<tr>
+            <td><b>${a.title}</b><br><small style="color:grey">${a.type}</small></td>
+            <td>${a.activity_date}<br><small>${a.activity_time}</small></td>
+            <td><b style="color:${a.needs_pj ? 'red':'#0F766E'}">${a.pj_name || 'BELUM ADA PJ'}</b></td>
+            <td><span class="badge ${a.status === 'terjadwal' ? 'badge-success' : 'badge-danger'}">${a.status}</span></td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="shareWaActivity(${a.id})">📲 Share WA</button>
+            </td>
+          </tr>`;
+          selectConf.innerHTML += `<option value="${a.id}">${a.title}</option>`;
+          selectDon.innerHTML += `<option value="${a.id}">${a.title}</option>`;
+          selectExp.innerHTML += `<option value="${a.id}">${a.title}</option>`;
+        });
+        actHtml += '</tbody></table>';
+        document.getElementById('home-activities-list').innerHTML = actHtml;
+        document.getElementById('activities-table-wrapper').innerHTML = actHtml;
+
+        // Laporan Publik
+        const repRes = await fetch(API_BASE + '/reports/published');
+        const reps = (await repRes.json()).data;
+        let repHtml = '';
+        if (reps.length === 0) {
+          repHtml = '<p style="color:grey; padding:20px;">Belum ada laporan yang dipublikasikan oleh takmir.</p>';
+        } else {
+          reps.forEach(r => {
+            const sum = r.summary_json || {};
+            repHtml += `<div style="border:1px solid #E2E8F0; padding:18px; border-radius:12px; margin-bottom:14px; background:white;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-size:16px; font-weight:700;">${r.title}</h3>
+                <span class="badge badge-info">${r.report_type}</span>
+              </div>
+              <div style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap;">
+                <div><small style="color:grey">Donasi Uang</small><br><b style="color:#059669">${formatRupiah(sum.total_money_donation)}</b></div>
+                <div><small style="color:grey">Total Pengeluaran</small><br><b style="color:#DC2626">${formatRupiah(sum.total_expense)}</b></div>
+                <div><small style="color:grey">Porsi Makanan</small><br><b>${sum.total_food_portions || 0} Porsi</b></div>
+                <div><small style="color:grey">Saldo / Selisih</small><br><b style="color:#0F766E">${formatRupiah(sum.balance)}</b></div>
+              </div>
+              <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                <button class="btn btn-outline btn-sm" onclick="shareWaReport(${r.id})">📲 Bagikan Laporan ke WhatsApp</button>
+              </div>
+            </div>`;
+          });
+        }
+        document.getElementById('reports-list-wrapper').innerHTML = repHtml;
+
+        // Jika Pengurus Login, Load Dashboard Stats & Donasi
+        if (authToken) {
+          const cashRes = await fetch(API_BASE + '/cash/summary', { headers: {'Authorization': 'Bearer ' + authToken} });
+          if (cashRes.ok) {
+            const cash = (await cashRes.json()).data;
+            document.getElementById('stat-kas-balance').innerText = formatRupiah(cash.current_balance);
+          }
+
+          const repSumRes = await fetch(API_BASE + '/reports/summary', { headers: {'Authorization': 'Bearer ' + authToken} });
+          if (repSumRes.ok) {
+            const repSum = (await repSumRes.json()).data;
+            document.getElementById('stat-total-donasi').innerText = formatRupiah(repSum.total_money_donation);
+            document.getElementById('stat-total-pengeluaran').innerText = formatRupiah(repSum.total_expense);
+            document.getElementById('stat-food-portions').innerText = (repSum.total_food_portions || 0) + ' Porsi';
+          }
+
+          // Load Donasi
+          const donRes = await fetch(API_BASE + '/donations');
+          const dons = (await donRes.json()).data;
+          let donHtml = '<table><thead><tr><th>Donatur</th><th>Jenis</th><th>Nilai / Porsi</th><th>Tanggal</th><th>Status</th></tr></thead><tbody>';
+          dons.slice(0, 10).forEach(d => {
+            donHtml += `<tr>
+              <td><b>${d.donor_name}</b></td>
+              <td><span class="badge ${d.type === 'uang' ? 'badge-success' : 'badge-info'}">${d.type}</span></td>
+              <td><b>${d.type === 'uang' ? formatRupiah(d.value_amount) : (d.type === 'makanan' ? d.portions + ' Porsi' : formatRupiah(d.value_amount))}</b></td>
+              <td>${d.donation_date}</td>
+              <td><span class="badge badge-success">${d.status}</span></td>
+            </tr>`;
+          });
+          donHtml += '</tbody></table>';
+          document.getElementById('admin-donations-table').innerHTML = donHtml;
+        }
+      } catch (err) {
+        console.error('Error loadAllData:', err);
+      }
+    }
+
+    // ==============================================================
+    // 4. OPERASI CRUD FORM (INSERT KE MYSQL)
+    // ==============================================================
+    async function handleAddActivity(e) {
+      e.preventDefault();
+      if (!authToken) { alert('Silakan login pengurus terlebih dahulu.'); return; }
+      const body = {
+        title: document.getElementById('act-title').value,
+        type: document.getElementById('act-type').value,
+        activity_date: document.getElementById('act-date').value,
+        activity_time: document.getElementById('act-time').value,
+        pj_name: document.getElementById('act-pj').value || null,
+        notes: document.getElementById('act-notes').value,
+        location: 'Masjid Al-Ikhlas'
+      };
+      const res = await fetch(API_BASE + '/activities', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Kegiatan berhasil ditambahkan ke database MySQL!');
+        closeModal('modal-add-activity');
+        loadAllData();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    function toggleDonationFields() {
+      const type = document.getElementById('don-type').value;
+      document.getElementById('don-field-uang').style.display = type === 'uang' ? 'block' : 'none';
+      document.getElementById('don-field-makanan').style.display = type === 'makanan' ? 'block' : 'none';
+      document.getElementById('don-field-barang').style.display = (type === 'barang' || type === 'jasa') ? 'block' : 'none';
+    }
+
+    async function handleAddDonation(e) {
+      e.preventDefault();
+      if (!authToken) { alert('Silakan login pengurus terlebih dahulu.'); return; }
+      const type = document.getElementById('don-type').value;
+      const body = {
+        type: type,
+        donor_name: document.getElementById('don-name').value || 'Hamba Allah',
+        activity_id: document.getElementById('don-activity').value ? parseInt(document.getElementById('don-activity').value) : null,
+      };
+
+      if (type === 'uang') {
+        body.value_amount = parseFloat(document.getElementById('don-amount').value || 0);
+        body.payment_method = document.getElementById('don-method').value;
+      } else if (type === 'makanan') {
+        body.portions = parseInt(document.getElementById('don-portions').value || 0);
+        body.description = document.getElementById('don-desc-makanan').value;
+      } else {
+        body.description = document.getElementById('don-desc-barang').value;
+        body.value_amount = parseFloat(document.getElementById('don-val-barang').value || 0);
+      }
+
+      const res = await fetch(API_BASE + '/donations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Donasi berhasil disimpan ke MySQL!');
+        closeModal('modal-add-donation');
+        loadAllData();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function handleAddExpense(e) {
+      e.preventDefault();
+      if (!authToken) { alert('Silakan login pengurus terlebih dahulu.'); return; }
+      const body = {
+        activity_id: parseInt(document.getElementById('exp-activity').value),
+        category: document.getElementById('exp-category').value,
+        amount: parseFloat(document.getElementById('exp-amount').value),
+        description: document.getElementById('exp-desc').value,
+      };
+      const res = await fetch(API_BASE + '/expenses', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Pengeluaran kegiatan berhasil dicatat ke MySQL!');
+        closeModal('modal-add-expense');
+        loadAllData();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function handleAddCash(e) {
+      e.preventDefault();
+      if (!authToken) { alert('Silakan login pengurus terlebih dahulu.'); return; }
+      const body = {
+        direction: document.getElementById('cash-direction').value,
+        amount: parseFloat(document.getElementById('cash-amount').value),
+        note: document.getElementById('cash-note').value,
+      };
+      const res = await fetch(API_BASE + '/cash/transaction', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Transaksi kas berhasil dicatat ke MySQL!');
+        closeModal('modal-add-cash');
+        loadAllData();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function handleConfirmSubmit(e) {
+      e.preventDefault();
+      const body = {
+        donor_name: document.getElementById('conf-name').value,
+        contact: document.getElementById('conf-contact').value,
+        amount: parseFloat(document.getElementById('conf-amount').value),
+        donation_date: document.getElementById('conf-date').value,
+        activity_id: document.getElementById('conf-activity').value ? parseInt(document.getElementById('conf-activity').value) : null,
+      };
+      const res = await fetch(API_BASE + '/confirmations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('conf-ref-code').innerText = data.data.reference_code;
+        document.getElementById('conf-result-box').style.display = 'block';
+        document.getElementById('form-confirm-donation').reset();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    // ==============================================================
+    // 5. TINJAU KONFIRMASI PENDING
+    // ==============================================================
+    async function openConfirmationsModal() {
+      if (!authToken) { alert('Silakan login terlebih dahulu.'); return; }
+      openModal('modal-confirmations');
+      const res = await fetch(API_BASE + '/confirmations?status=menunggu', {
+        headers: {'Authorization': 'Bearer ' + authToken}
+      });
+      const data = (await res.json()).data;
+      let html = '';
+      if (!data || data.length === 0) {
+        html = '<p style="color:grey; padding:20px; text-align:center;">Tidak ada konfirmasi donasi yang menunggu.</p>';
+      } else {
+        data.forEach(c => {
+          html += `<div style="border:1px solid #E2E8F0; padding:14px; border-radius:10px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between;">
+              <b>Ref: ${c.reference_code}</b>
+              <span class="badge badge-warning">${c.status}</span>
+            </div>
+            <div style="margin:6px 0; font-size:14px;">
+              Donatur: <b>${c.donor_name}</b> (${c.contact || '-'})<br>
+              Nominal: <b style="color:#059669">${formatRupiah(c.amount)}</b> | Tgl: ${c.donation_date}
+            </div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+              <button class="btn btn-danger btn-sm" onclick="rejectConfirm(${c.id})">Tolak</button>
+              <button class="btn btn-success btn-sm" onclick="approveConfirm(${c.id})">Setujui & Buat Donasi</button>
+            </div>
+          </div>`;
+        });
+      }
+      document.getElementById('confirmations-list-container').innerHTML = html;
+    }
+
+    async function approveConfirm(id) {
+      if (!confirm('Setujui konfirmasi donasi ini? Data donasi terverifikasi akan langsung dibuat di MySQL.')) return;
+      const res = await fetch(API_BASE + `/confirmations/${id}/approve`, {
+        method: 'POST',
+        headers: {'Authorization': 'Bearer ' + authToken}
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Konfirmasi disetujui!');
+        openConfirmationsModal();
+        loadAllData();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function rejectConfirm(id) {
+      const reason = prompt('Masukkan alasan penolakan konfirmasi donasi:');
+      if (!reason) return;
+      const res = await fetch(API_BASE + `/confirmations/${id}/reject`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken},
+        body: JSON.stringify({reason})
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Konfirmasi ditolak.');
+        openConfirmationsModal();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    // ==============================================================
+    // 6. SHARE KE WHATSAPP (FR-41)
+    // ==============================================================
+    async function shareWaActivity(actId) {
+      const res = await fetch(API_BASE + `/whatsapp/activity/${actId}`);
+      const data = await res.json();
+      if (data.success) {
+        const text = encodeURIComponent(data.data.share_text);
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      }
+    }
+
+    async function shareWaReport(repId) {
+      const res = await fetch(API_BASE + `/whatsapp/report/${repId}`);
+      const data = await res.json();
+      if (data.success) {
+        const text = encodeURIComponent(data.data.share_text);
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      }
+    }
+
+    // Inisialisasi awal
+    document.getElementById('act-date').value = new Date().toISOString().substring(0, 10);
+    document.getElementById('conf-date').value = new Date().toISOString().substring(0, 10);
+    updateAuthUI();
+    loadAllData();
+  </script>
+</body>
+</html>

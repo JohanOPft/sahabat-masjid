@@ -1,0 +1,9 @@
+# Sahabat Masjid - Backend Dependencies
+uvicorn>=0.20.0
+starlette>=0.28.0
+fastapi>=0.100.0
+pymysql>=1.1.0
+cryptography>=41.0.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+python-multipart>=0.0.6

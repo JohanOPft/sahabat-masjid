@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🕌 Sahabat Masjid - Sistem Pengelolaan Donasi & Kegiatan Masjid Al-Ikhlas
 
 Proyek website dan aplikasi **Sahabat Masjid** yang dibangun secara lengkap dan terstruktur sesuai dengan dokumen **Software Requirements Specification (SRS) v1.0** Masjid Al-Ikhlas Semarang.
@@ -158,3 +159,7 @@ Sesuai dengan SRS Bab 2.2, akun pengurus telah diisi dengan data awal:
 - **Keamanan:** Kata sandi di-hash dengan SHA-256 + garam rahasia (`PASSWORD_SALT`), token akses HMAC-SHA256 dengan waktu kedaluwarsa (NFR-10, NFR-14).
 - **Integritas Keuangan:** Data keuangan tidak pernah dihapus permanen (`hard delete`), melainkan berstatus `dibatalkan` disertai alasan pembatalan dan pencatatan jejak audit (BR-06).
 - **Kemudahan Lansia (NFR-01):** Teks besar (minimal 16px), warna kontras, tombol berukuran nyaman, dan alur kerja utama tidak lebih dari tiga langkah (NFR-03).
+=======
+# sahabat-masjid
+sahabat masjid ver 0.1
+>>>>>>> cd1ecbf38c59d77629aef28bdbb2aeff18f0fb18
